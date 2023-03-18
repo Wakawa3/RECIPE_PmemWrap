@@ -36,11 +36,13 @@ include_directories(include external/include)
 
 find_library(JemallocLib jemalloc)
 find_library(TbbLib tbb)
-find_package (Threads)
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package (Threads REQUIRED)
 
 set(P_CLHT_TEST example.cpp src/clht_lb_res.c src/clht_gc.c
     external/sspfd/sspfd.c external/ssmem/src/ssmem.c)
 add_executable(example ${P_CLHT_TEST})
 
+target_link_libraries(example Threads::Threads)
 target_link_libraries(example ${TbbLib} ${JemallocLib} boost_system
-    boost_thread pthread pmemobj pmem)
+    boost_thread pthread wrappmem pmemobj pmem)

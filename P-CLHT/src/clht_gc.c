@@ -100,7 +100,9 @@ static int clht_gc_collect_cond(clht_t* hashtable, int collect_not_referenced_on
 clht_gc_collect(clht_t* hashtable)
 {
 #if CLHT_DO_GC == 1
+    PMEMWRAP_PRINT_LINE();
     CLHT_GC_HT_VERSION_USED(clht_ptr_from_off(hashtable->ht_off, false));
+    PMEMWRAP_PRINT_LINE();
     return clht_gc_collect_cond(hashtable, 1);
 #else
     return 0;
@@ -151,8 +153,10 @@ clht_gc_min_version_used(clht_t* h)
     static int
 clht_gc_collect_cond(clht_t* hashtable, int collect_not_referenced_only)
 {
+    PMEMWRAP_PRINT_LINE();
     clht_hashtable_t *ht_ptr = (clht_hashtable_t *)clht_ptr_from_off(hashtable->ht_off, false);
     /* if version_min >= current version there is nothing to collect! */
+    PMEMWRAP_PRINT_LINE();
     if ((hashtable->version_min >= ht_ptr->version) || TRYLOCK_ACQ(&hashtable->gc_lock))
     {
         /* printf("** someone else is performing gc\n"); */
@@ -162,10 +166,12 @@ clht_gc_collect_cond(clht_t* hashtable, int collect_not_referenced_only)
     //ticks s = getticks();
 
     /* printf("[GCOLLE-%02d] LOCK  : %zu\n", GET_ID(collect_not_referenced_only), hashtable->version); */
-
+    PMEMWRAP_PRINT_LINE();
     size_t version_min = ht_ptr->version; 
+    PMEMWRAP_PRINT_LINE();
     if (collect_not_referenced_only)
     {
+        PMEMWRAP_PRINT_LINE();
         version_min = clht_gc_min_version_used(hashtable);
     }
 
@@ -173,31 +179,50 @@ clht_gc_collect_cond(clht_t* hashtable, int collect_not_referenced_only)
     /* 	 GET_ID(collect_not_referenced_only), version_min, hashtable->version, hashtable->version_min); */
 
     int gced_num = 0;
-
+    PMEMWRAP_PRINT_LINE();
     if (hashtable->version_min >= version_min)
     {
+        PMEMWRAP_PRINT_LINE();
         /* printf("[GCOLLE-%02d] UNLOCK: %zu (nothing to collect)\n", GET_ID(collect_not_referenced_only), hashtable->ht->version); */
         TRYLOCK_RLS(hashtable->gc_lock);
     }
     else
     {
         /* printf("[GCOLLE-%02d] collect from %zu to %zu\n", GET_ID(collect_not_referenced_only), hashtable->version_min, version_min); */
-
+        PMEMWRAP_PRINT_LINE();
         clht_hashtable_t* cur = hashtable->ht_oldest;
+        PMEMWRAP_PRINT_LINE();
+        if(cur != NULL){
+            fprintf(stderr, "test1\n");
+        }
+        else fprintf(stderr, "test3\n");
+        PMEMWRAP_PRINT_LINE();
+        fprintf(stderr, "cur: %p\n", cur);
+        fprintf(stderr, "cur->version: %ld, version_min: %ld\n", cur->version, version_min);
+        if(cur->version < version_min){
+            fprintf(stderr, "test2\n");
+        }
+        else fprintf(stderr, "test4\n");
+        PMEMWRAP_PRINT_LINE();
         while (cur != NULL && cur->version < version_min)
         {
             gced_num++;
+            PMEMWRAP_PRINT_LINE();
             clht_hashtable_t* nxt = cur->table_new;
             /* printf("[GCOLLE-%02d] gc_free version: %6zu | current version: %6zu\n", GET_ID(collect_not_referenced_only), */
             /* 	 cur->version, hashtable->ht->version); */
+            PMEMWRAP_PRINT_LINE();
             nxt->table_prev = NULL;
+            PMEMWRAP_PRINT_LINE();
             clht_gc_free(cur);
+            PMEMWRAP_PRINT_LINE();
             cur = nxt;
         }
-
+        PMEMWRAP_PRINT_LINE();
         hashtable->version_min = cur->version;
+        PMEMWRAP_PRINT_LINE();
         hashtable->ht_oldest = cur;
-
+        PMEMWRAP_PRINT_LINE();
         TRYLOCK_RLS(hashtable->gc_lock);
         /* printf("[GCOLLE-%02d] UNLOCK: %zu\n", GET_ID(collect_not_referenced_only), cur->version); */
     }

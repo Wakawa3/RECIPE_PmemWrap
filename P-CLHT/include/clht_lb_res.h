@@ -37,7 +37,9 @@
 #include "atomic_ops.h"
 #include "utils.h"
 
-#include <libpmemobj.h>
+#include "libpmem.h"
+#include "libpmemobj.h"
+
 #include <stdbool.h>
 
 #ifdef __cplusplus
@@ -329,6 +331,7 @@ lock_acq_chk_resize(clht_lock_t* lock, clht_hashtable_t* h)
 	{
 	  _mm_pause();
 	  _mm_mfence();
+    PMEMWRAP_DRAIN_NOWRAP();
 	}
 
       return 0;

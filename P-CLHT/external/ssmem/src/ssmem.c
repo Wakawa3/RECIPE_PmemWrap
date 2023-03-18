@@ -36,7 +36,7 @@
 #include <assert.h>
 #include <string.h>
 
-#include <libpmemobj.h>
+#include "libpmemobj.h"
 
 ssmem_ts_t* ssmem_ts_list = NULL;
 volatile uint32_t ssmem_ts_list_len = 0;

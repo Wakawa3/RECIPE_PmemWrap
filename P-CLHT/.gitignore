@@ -166,3 +166,6 @@
 /top.sh
 /top.sh~
 /ttas.o
+
+outputs/
+outputs_safepm/
